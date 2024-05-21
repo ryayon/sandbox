@@ -1,0 +1,19 @@
+# Context for all clusters
+
+context:
+
+  # This part if for cert-manager configuration
+  certIssuers:
+    caClusterIssuers: []
+#      - name: my-public-ca
+#        ca_crt: LS0tLS1C.......RklDQVRFLS0tLS0K
+#        ca_key: LS0tLS1C.......S0VZLS0tLS0K
+
+    selfsignedClusterIssuers:
+      - name: cluster-internal
+
+  # This is for cert-manager's users
+  certificateIssuer:
+    public: cluster-internal
+    internal: cluster-internal
+

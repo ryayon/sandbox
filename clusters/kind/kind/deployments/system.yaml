@@ -1,0 +1,43 @@
+
+deployments:
+
+  - name: reloader
+    component: reloader
+    namespace: kube-tools
+
+  - name: cert-manager
+    component: cert-manager
+    namespace: cert-manager
+    modules:
+      - name: trust
+        enabled: true
+
+  - name: metallb
+    component: metallb
+    namespace: metallb
+
+  - name: ingress-nginx
+    component: ingress-nginx
+    namespace: ingress-nginx
+    dependsOn:
+      - deployment: metallb
+        module: main
+      - deployment: cert-manager
+        module: issuers
+
+  - name: replicator
+    component: replicator
+    namespace: kube-tools
+
+  - name: secret-generator
+    component: secret-generator
+    namespace: kube-tools
+
+  - name: skas
+    enabled: true
+    component: skas
+    namespace: skas-system
+    dependsOn:
+      - deployment: ingress-nginx
+        module: main
+

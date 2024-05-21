@@ -1,0 +1,41 @@
+sources:
+  - name: podinfo
+    kind: HelmRepository
+    template: helmRepository
+    config:
+      url: https://stefanprodan.github.io/podinfo
+
+components:
+  - name: podinfo
+    createNamespace: true
+    modules:
+      - name: main
+        source: podinfo
+        chart:
+          name: podinfo
+          version: 6.5.4
+        values: |
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - "ALL"
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            runAsUser: 100 # User 'app'
+          ingress:
+            enabled: true
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: {{ .Context.certificateIssuer.public }}
+            hosts:
+              - host: podinfo.{{ .Context.ingress.urlRoot }}
+                paths:
+                  - path: /
+                    pathType: ImplementationSpecific
+            tls:
+              - secretName: podinfo-tls
+                hosts:
+                  - podinfo.{{ .Context.ingress.urlRoot }}

@@ -1,0 +1,10 @@
+# Context specific to all 'kind' clusters
+
+context:
+
+  storageClass:
+    data: standard
+    workspace: standard
+
+  networkPoliciesSupport: false
+

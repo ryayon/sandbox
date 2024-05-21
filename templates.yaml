@@ -1,0 +1,106 @@
+
+templates:
+  - name: helmRelease
+    config:
+      interval: "1m"
+      timeout:  "5m"
+      chart:
+        reconcileStrategy: Revision # 'Revision' or  'ChartVersion'
+        interval: "1m"
+      install:
+        remediation:
+          retries: 5
+          remediateLastFailure: true
+    body: |
+      ---
+      apiVersion: helm.toolkit.fluxcd.io/v2beta2
+      kind: HelmRelease
+      metadata:
+        name: {{ .Meta.module.helmReleaseName }}
+        namespace: {{ .Meta.module.helmReleaseNamespace }}
+      {{- if .Meta.module.enabled }}
+      spec:
+        interval: {{ .Config.interval }}
+        serviceAccountName: kustomize-controller
+        targetNamespace: {{  .Meta.module.namespace }}
+        storageNamespace: {{ .Meta.module.namespace }}
+        releaseName: {{ .Meta.module.helmReleaseName  }}
+        timeout: {{ .Config.timeout }}
+        chart:
+          spec:
+            reconcileStrategy: {{ .Config.chart.reconcileStrategy }}
+            sourceRef:
+              kind: {{ .Meta.source.kind }}
+              name: {{  .Meta.source.name }}
+              namespace: {{ .Meta.source.namespace }}
+            chart: {{ .Meta.chart.chart }}
+            {{- with .Meta.chart.version }}
+            version: {{ . }}
+            {{- end }}
+            interval: {{ .Config.chart.interval }}
+        install:
+          createNamespace: {{ .Meta.deployment.createNamespace }}
+          remediation:
+            retries: {{ .Config.install.remediation.retries }}
+            remediateLastFailure: {{ .Config.install.remediation.remediateLastFailure }}
+        {{- with .Meta.module.dependsOn}}
+        dependsOn:
+          {{- range . }}
+          - name : {{ .Name }}
+            namespace: {{ .Namespace }}
+          {{- end }}
+        {{- end }}
+        values:
+        {{- toYaml .HelmValues | nindent 4 }}
+      {{- end }}
+
+  - name: gitRepository
+    config:
+      interval: "1m"
+      url: # TBD
+      branch: main
+#      secretRef:
+#        name: pull-github
+      ignore: ""
+    body: |
+      ---
+      apiVersion: source.toolkit.fluxcd.io/v1
+      kind: {{ .Meta.source.kind }}
+      metadata:
+        name: {{ .Meta.source.name }}
+        namespace: {{ .Meta.source.namespace }}
+      spec:
+        url: {{ .Config.url }}
+        interval: {{ .Config.interval }}
+        ref:
+          branch: {{ .Config.branch }}
+        {{- with .Config.secretRef }}
+        secretRef:
+          name: {{ .name }}
+        {{- end }}
+        ignore: | 
+          {{- .Config.ignore | nindent 4 }}
+
+  - name: helmRepository
+    config:
+      interval: "1m"  # TODO: Set to 24h after setup
+      url: # TBD
+#     secretRef:
+#       name: pull-github
+    body: |
+      ---
+      apiVersion: source.toolkit.fluxcd.io/v1beta2
+      kind: {{ .Meta.source.kind }}
+      metadata:
+        name: {{ .Meta.source.name }}
+        namespace: {{ .Meta.source.namespace }}
+      spec:
+        interval: {{ .Config.interval }}   
+        url: {{ .Config.url }}
+        {{- with .Config.secretRef }}
+        secretRef:
+          name: {{ .name }}
+        {{- end }}
+      
+      
+      

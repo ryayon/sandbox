@@ -1,0 +1,29 @@
+
+caClusterIssuers: []
+# Examples:
+#
+# A secret 'issuer1' is created in deployment namespace. And a secret 'issuer1-ca' is created with the only the ca.crt
+# - name: issuer1
+#   ca_crt: LS0tLS1CRUdJTiBDRVJUS......
+#   ca_key: LS0tLS1CRUdJTiBSU0EgUFJJ......
+# *************************************** WARNING *********************************************
+# ******************** Pushing key value in Git is a security leak ****************************
+# ***************** Such compromised CA should never be trusted in your browser ***************
+
+# A secret 'issuer2-ca' is created with the only the ca.crt
+# The secret 'issuer2' with ca.crt and ca.key must be created externally
+# - name: issuer2
+#   ca_crt: LS0tLS1CRUdJTiBDRVJUS......
+
+# Both secrets 'issuer3' (with ca.crt and ca.key) and 'issuer3-ca' (with only ca.crt) must be created externally
+# - name: issuer3
+
+selfsignedClusterIssuers: []
+#  - name: selfSigned1
+
+# require trust-manager
+bundle:
+  enabled: true
+  name: root-certs.pem
+  namespaceSelector:
+    matchLabels: {}   # All namespaces

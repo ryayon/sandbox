@@ -1,0 +1,40 @@
+
+{{- range .Values.caClusterIssuers }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .name }}
+spec:
+  ca:
+    secretName: {{ .name }}
+
+{{- if .ca_key }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+data:
+  tls.crt: {{ .ca_crt }}
+  tls.key: {{ .ca_key }}
+{{- end }}
+
+
+{{- if .ca_crt }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .name }}-ca
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    kubed.appscode.com/sync: ca/{{.name}}=copy
+    replicator.v1.mittwald.de/replication-allowed: "true"
+    replicator.v1.mittwald.de/replication-allowed-namespaces: ".*"
+data:
+  ca.crt: {{ .ca_crt }}
+{{- end}}
+
+{{- end}}

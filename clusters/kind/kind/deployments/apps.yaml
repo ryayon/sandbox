@@ -1,0 +1,9 @@
+
+deployments:
+
+  - name: podinfo
+    component: podinfo
+    namespace: podinfo
+    dependsOn:
+      - deployment: ingress-nginx
+        module: main
